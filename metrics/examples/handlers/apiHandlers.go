@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	metrics "github.com/twistingmercury/monitoring-metrics"
-	"github.com/twistingmercury/monitoring-metrics/examples/data"
+	"github.com/twistingmercury/monitoring/metrics"
+	"github.com/twistingmercury/monitoring/metrics/examples/data"
 	"net/http"
 )
 
@@ -51,7 +51,7 @@ func DeletePersonHandler(c *gin.Context) {
 func handleErr(c *gin.Context, err error) (ok bool) {
 	ok = true
 	if err != nil {
-		c.Error(err)
+		_ = c.Error(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"err": err.Error()})
 		ok = false
 	}

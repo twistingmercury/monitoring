@@ -33,7 +33,7 @@ func main() {
 	}
 }
 
-func checkMSSQL() (hsr health.HealthStatusResult) {
+func checkMSSQL() (hsr health.StatusResult) {
 	// connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d", "myServer", "user", "pwd", 1234)
 	// db, err := sql.Open("mssql", connString)
 	// if err != nil {

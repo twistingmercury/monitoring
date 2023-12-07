@@ -20,19 +20,22 @@ func testServer(status int, delay bool) *httptest.Server {
 				time.Sleep(4 * time.Second)
 			}
 			w.WriteHeader(status)
-			fmt.Fprintln(w, "Hello, client")
+			_, err := fmt.Fprintln(w, "Hello, client")
+			if err != nil {
+				return
+			}
 		}))
 }
 
 func TestDependencyHandlerFunc(t *testing.T) {
-	exp := health.HealthStatusResult{
+	exp := health.StatusResult{
 		Status:          health.HealthStatusOK,
 		Name:            "Test Func",
 		RequestDuration: 42,
 		Resource:        "None",
 	}
 	dep := health.DependencyDescriptor{
-		HandlerFunc: func() (hsr health.HealthStatusResult) {
+		HandlerFunc: func() (hsr health.StatusResult) {
 			return exp
 		},
 	}
@@ -42,7 +45,7 @@ func TestDependencyHandlerFunc(t *testing.T) {
 }
 
 func TestCheckDepsInvokesHandlerFunc(t *testing.T) {
-	exp := health.HealthStatusResult{
+	exp := health.StatusResult{
 		Status:          health.HealthStatusOK,
 		Name:            "Test Func",
 		RequestDuration: 42,
@@ -53,7 +56,7 @@ func TestCheckDepsInvokesHandlerFunc(t *testing.T) {
 	defer ts.Close()
 	deps := []health.DependencyDescriptor{
 		{Connection: ts.URL, Name: "Test URL 1", Type: "HTTP"},
-		{Connection: "", Name: "Test custom", Type: "Custom", HandlerFunc: func() (hsr health.HealthStatusResult) { return exp }},
+		{Connection: "", Name: "Test custom", Type: "Custom", HandlerFunc: func() (hsr health.StatusResult) { return exp }},
 	}
 
 	s, r := health.CheckDeps(deps)
@@ -121,7 +124,7 @@ func TestHandlerReturnCritical(t *testing.T) {
 	data := resp.Body.Bytes()
 	assert.Greater(t, len(data), 0)
 
-	var hcr health.HealthResponse
+	var hcr health.Response
 
 	err := json.Unmarshal(data, &hcr)
 	assert.NoError(t, err)
@@ -188,7 +191,7 @@ func TestDependencyDescriptorString(t *testing.T) {
 }
 
 func TestHealthStatusResultString(t *testing.T) {
-	r := health.HealthStatusResult{
+	r := health.StatusResult{
 		Status:          health.HealthStatusOK,
 		Name:            "test",
 		RequestDuration: 42,

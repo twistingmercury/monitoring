@@ -121,6 +121,7 @@ type testUserAgent struct {
 
 const nilValue = "<nil>"
 
+//goland:noinspection ALL
 var testUserAgents = []testUserAgent{
 	{"Mozilla/5.0 (Linux; Android 7.0; SM-T827R4 Build/NRD90M) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.116 Safari/537.36", "mobile", logs.BrowserChrome},
 	{"Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)", "bot", nilValue},

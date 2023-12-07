@@ -16,7 +16,6 @@ services:
     ports:
       - "8080:8080" # Expose the application port
       - "9090:9090" # Expose the prometheus port
-      -
   ddAgent:
     image: datadog/agent:latest
     container_name: ddAgent
