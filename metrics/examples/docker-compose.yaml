@@ -1,0 +1,40 @@
+version: "3"
+
+networks:
+  examples_nw:
+    driver: bridge
+
+services:
+  monex:
+    container_name: monex
+    image: twistingmercury/monex:latest
+    environment:
+      - OTEL_COLLECTOR_EP=ddAgent:4317
+      - OTEL_PROTOCOL=grpc
+    networks:
+      - examples_nw
+    ports:
+      - "8080:8080" # Expose the application port
+      - "9090:9090" # Expose the prometheus port
+      -
+  ddAgent:
+    image: datadog/agent:latest
+    container_name: ddAgent
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=datadoghq.com
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_CONTAINER_EXCLUDE=name:datadog-agent
+      - DD_CONTAINER_INCLUDE=image:monitor_example
+      - DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_GRPC_ENDPOINT=0.0.0.0:4317
+      - DD_OTLP_CONFIG_RECEIVER_PROTOCOLS_HTTP_ENDPOINT=0.0.0.0:4318
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+    networks:
+      - examples_nw

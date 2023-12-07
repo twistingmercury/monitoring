@@ -1,0 +1,13 @@
+bin/
+makefile
+dockerfile
+docker-compose.yaml
+go.sum
+**/*.sh
+**/*.md
+**/*.env
+**/*_test.go
+**/*.out
+.gitignore
+.dockerignore
+

@@ -1,0 +1,26 @@
+FROM golang:alpine as build
+
+RUN mkdir /src && \
+      apk update && \
+      apk add git
+
+WORKDIR /src
+COPY . .
+RUN go mod tidy
+RUN CGO_ENABLED=0 GO_ENABLED=0 go build -ldflags "-s -w" -o ./bin/exapp .
+
+FROM alpine:3.18.0
+RUN apk --no-cache add ca-certificates
+
+LABEL com.datadoghq.ad.check_names='["openmetrics"]' \
+      com.datadoghq.ad.init_configs='[{}]' \
+      com.datadoghq.ad.instances=[{"openmetrics_endpoint":"http://exapp:9090/metrics","namespace":"exapp","metrics":["exapp*"]}]
+
+EXPOSE 8080 9090
+
+ENV OTEL_COLLECTOR_EP=""
+
+WORKDIR /app
+COPY --from=build /src/bin/ /app/
+
+ENTRYPOINT [ "./exapp"]
