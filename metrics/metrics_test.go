@@ -13,13 +13,16 @@ import (
 
 func TestInitializePanics(t *testing.T) {
 	defer metrics.Reset()
-	assert.Panics(t, func() { metrics.Initialize("") })
+	assert.Panics(t, func() { metrics.Initialize("", "test") })
 
 	metrics.Reset()
-	assert.Panics(t, func() { metrics.Initialize("1023") })
+	assert.Panics(t, func() { metrics.Initialize("1023", "test") })
 
 	metrics.Reset()
-	assert.Panics(t, func() { metrics.Initialize("49152") })
+	assert.Panics(t, func() { metrics.Initialize("49152", "test") })
+
+	metrics.Reset()
+	assert.Panics(t, func() { metrics.Initialize("1234", "") })
 
 	metrics.Reset()
 	assert.Panics(t, func() { metrics.GinMetricsMiddleWare() })
@@ -33,7 +36,7 @@ func TestInitializePanics(t *testing.T) {
 
 func TestInitalize(t *testing.T) {
 	defer metrics.Reset()
-	metrics.Initialize("1024")
+	metrics.Initialize("1024", "test")
 	assert.True(t, metrics.IsInitialized())
 	assert.Equalf(t, "1024", metrics.Port(), "Port() should return 1024")
 	assert.Equal(t, []string{"path", "http_method", "status_code"}, metrics.MetricApiLabels())
@@ -41,13 +44,13 @@ func TestInitalize(t *testing.T) {
 
 func TestPublish(t *testing.T) {
 	defer metrics.Reset()
-	metrics.Initialize("1024")
+	metrics.Initialize("1024", "test")
 	assert.NotPanics(t, func() { metrics.Publish() })
 }
 
 func TestGinMiddleware(t *testing.T) {
 	defer metrics.Reset()
-	metrics.Initialize("1024")
+	metrics.Initialize("1024", "test")
 	req, w, r := setupMiddlewareTests("/good", http.MethodGet, http.StatusOK)
 	r.ServeHTTP(w, req)
 
@@ -69,14 +72,14 @@ func TestGinMiddlewareNames(t *testing.T) {
 		"metrics_test_concurrent_calls",
 		"metrics_test_total_calls",
 		"metrics_test_call_duration"}
-	metrics.Initialize("1024")
+	metrics.Initialize("1024", "test")
 	metrics.Publish()
 	assert.Equal(t, expected, metrics.MetricNames())
 }
 
 func TestRegisterCustomMetrics(t *testing.T) {
 	defer metrics.Reset()
-	metrics.Initialize("1024")
+	metrics.Initialize("1024", "test")
 	metrics.Publish()
 	metrics.RegisterCustomMetrics(customMetrics()...)
 }

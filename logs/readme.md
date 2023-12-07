@@ -1,4 +1,4 @@
-#  OTEL Observability Wrappers: Logging
+#  Monitoring: Logging
 
 This repository contains a middleware for [gin and gonic](https://github.com/gin-gonic/gin) using [slog]( https://pkg.go.dev/log/slog).
 It is intended to be used by services that are instrumented with the [Open Telemetry]("go.opentelemetry.io/otel/trace") framework for Go.
@@ -8,7 +8,9 @@ This package will also work as middleware if the project doesn't implement OTel 
 ## Installation
 
 ```bash
-go get -u github.com/twistingmercury/monitoring-logs
+
+go get -u github.com/twistingmercury/monitoring
+
 ```
 
 ## Log Collectors and Agents
@@ -35,9 +37,7 @@ This value is passed in with the `writer` parameter. If you do not provide a val
 
 ### Logging Level
 
-The logging level is set using the [slog.Level](https://pkg.go.dev/golang.org/x/exp/slog#Level) type. This value is passed in with the `level` parameter.
-Valid values are documented in the [slog package](https://pkg.go.dev/golang.org/x/exp/slog#Level:~:text=const%20(%0A%09LevelDebug%20Level%20%3D%20%2D4%0A%09LevelInfo%20%20Level%20%3D%200%0A%09LevelWarn%20%20Level%20%3D%204%0A%09LevelError%20Level%20%3D%208%0A)).
-If a value is provide that is not valid, the application will panic. Again, this is in keeping with the "fail fast" philosophy.
+The logging level is set using the [zerolog.Level](https://github.com/rs/zerolog/blob/master/log.go#L129) type. This value is passed in with the `level` parameter. If a value is provide that is not valid, the application will panic. Again, this is in keeping with the "fail fast" philosophy.
 
 ## Usage
 
@@ -46,11 +46,13 @@ To use the wrappers, you will need to initialize each wrapper you intend to use:
 ```go
 package main
 
-iimport (
+import (
     "github.com/gin-contrib/requestid"
     "github.com/gin-gonic/gin"
     "log/slog"
     "os"
+
+	"github.com/twistingmercury/monitoring/logs"
     ...
 )
 
@@ -67,7 +69,7 @@ func main(){
 	//`
 	// todo: initialize tracing if you are using it...
 	// 
-	logs.Initialize(slog.LevelDebug, buildVersion, serviceName, buildDate, buildCommit, env, os.Stdout)
+	logs.Initialize(zerolog.DebugLevel, buildVersion, serviceName, buildDate, buildCommit, env, os.Stdout)
 
 	// do stuff...start your service, etc.
 	r := gin.New()
@@ -77,16 +79,15 @@ func main(){
 	})
 
 	if r.Run(":8080");err != nil {
-		log.Panic(err, "error encountered in the gin.Engine.run func")
+		log.Fatal()Err(err).Msg( "error encountered in the gin.Engine.run func")
 	}
 }
 ```
-Once initialized, you can use `slog` to manually log other things, such as errors, warnings, etc. However, these will not be correlated with the request. This feature should be coming soon, so that all logs will be correlated with the trace.
+Once initialized, you can use `zerolog.Logger` to manually log other things, such as errors, warnings, etc. However, these will not be correlated with the request. This feature should be coming soon, so that all logs will be correlated with the trace.
 
 ### Manual Logging
 
-Log entries can be added manually that are correlated with the request. Helper funcs are provided for the various log levels. You must provide
-the context.Context that contains the trace information, and the message to log. A way to do this is might be:
+Log entries can be added manually that are correlated with the request. Helper funcs are provided for the various log levels. You must provide the context.Context that contains the trace information, and the message to log. A way to do this is might be:
 
 ```go
 package logic

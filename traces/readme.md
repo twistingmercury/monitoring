@@ -6,7 +6,7 @@ need tracing using the [Open Telemetry]("go.opentelemetry.io/otel/trace") framew
 ## Installation
 
 ```bash
-go get -u github.com/twistingmercury/observability-traces
+go get -u github.com/twistingmercury/monitoring/traces
 ```
 
 ## Collectors and Agents
@@ -20,7 +20,7 @@ were tested using both http and grpc protocols.
 ### Trace and Log Correlation
 
 This middleware pairs nicely with
-the [OTEL Observability Wrappers: Logging](https://github.com/twistingmercury/observability-logs).
+the [Monitoring: Logging](../logs/readme.md).
 When used together, the logs and traces will be correlated in by adding the trace id to the log entry.
 
 ## Initialization
@@ -38,7 +38,7 @@ package main
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/twistingmercury/monitoring-traces"
+	"github.com/twistingmercury/monitoring/traces"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
@@ -100,7 +100,7 @@ package main
 
 import (
     // other imports ...
-    "github.com/twistingmercury/monitoring-traces"
+    "github.com/twistingmercury/monitoring/traces"
     "go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
     "google.golang.org/grpc"
     "google.golang.org/grpc/credentials/insecure"
