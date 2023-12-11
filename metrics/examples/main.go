@@ -1,30 +1,43 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
-	metrics "github.com/twistingmercury/monitoring-metrics"
-	"github.com/twistingmercury/monitoring-metrics/examples/data"
-	"github.com/twistingmercury/monitoring-metrics/examples/handlers"
-	"log/slog"
 	"os"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/pkgerrors"
+	"github.com/twistingmercury/monitoring/metrics"
+	"github.com/twistingmercury/monitoring/metrics/examples/data"
+	"github.com/twistingmercury/monitoring/metrics/examples/handlers"
 )
 
 func main() {
-	opt := &slog.HandlerOptions{
-		AddSource: false,
-		Level:     slog.LevelDebug,
-	}
-
-	log := slog.New(slog.NewJSONHandler(os.Stdout, opt))
-	slog.SetDefault(log)
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	zerolog.TimeFieldFormat = time.RFC3339Nano
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
+	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	gin.SetMode(gin.DebugMode)
 
-	metrics.Initialize("9090")
+	// Metrics are hosted on in a separate goroutine on the port specified.
+	// This needs to be invoked before any metrics are registered. It can be called
+	// multiple times, but only the first call will have any effect.
+	metrics.Initialize("9090", "examples")
+
+	// Register the metrics from any packages that have them, in this examples,
+	// he data package has metrics.
 	dataMetrics := data.Metrics()
+
+	// this can be called multiple times if there are metrics in multiple packages.
 	metrics.RegisterCustomMetrics(dataMetrics...)
+
+	// Publish exposes the metrics for scraping. This needs to be called after
+	// all metrics have been registered. It can be called multiple times, but
+	// only the first call will have any effect.
 	metrics.Publish()
 
+	// Create a gin router and add the middleware to it as one normally would.
 	r := gin.New()
 	r.Use(metrics.GinMetricsMiddleWare())
 
@@ -34,7 +47,6 @@ func main() {
 	r.DELETE("/person/:id", handlers.DeletePersonHandler)
 
 	if err := r.Run(":8080"); err != nil {
-		slog.Error(err.Error())
-		os.Exit(1)
+		logger.Fatal().Err(err).Msg("failed to start server")
 	}
 }

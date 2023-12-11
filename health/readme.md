@@ -30,7 +30,7 @@ The package provides two means of checking a dependency for a health check:
         }
    ```
 
-For an example of using both, see [example.go](example/example.go).  
+For an example of using both, see [example.go](examples/example.go).  
 
 Get the latest package: `go get -u github.com/twistingmercury/go-healthcheck`
 

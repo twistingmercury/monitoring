@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	metrics "github.com/twistingmercury/monitoring-metrics"
+	"github.com/twistingmercury/monitoring/metrics"
 )
 
 var (
@@ -22,6 +22,7 @@ const (
 	errLabel = "isError"
 )
 
+// Metrics returns the metrics that are defined for the data package.
 func Metrics() (c []prometheus.Collector) {
 	labels := []string{apiLabel, pckLabel, fncLabel, errLabel}
 	tCtr = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -41,6 +42,7 @@ func Metrics() (c []prometheus.Collector) {
 	return
 }
 
+// DoDatabaseStuff simulates a database call.
 func DoDatabaseStuff() (err error) {
 	s := time.Now()
 	defer func() {
@@ -66,8 +68,9 @@ func DoDatabaseStuff() (err error) {
 	return
 }
 
+// incMetrics is a helper function to increment the metrics for the data package.
 func incMetrics(fName string, d float64, err error) {
 	isErr := err != nil
-	tCtr.WithLabelValues("example", "data", fName, strconv.FormatBool(isErr)).Inc()
-	dHist.WithLabelValues("example", "data", fName, "DoDatabaseStuff").Observe(d)
+	tCtr.WithLabelValues("examples", "data", fName, strconv.FormatBool(isErr)).Inc()
+	dHist.WithLabelValues("examples", "data", fName, "DoDatabaseStuff").Observe(d)
 }

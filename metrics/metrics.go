@@ -2,10 +2,6 @@ package metrics
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	dto "github.com/prometheus/client_model/go"
 	"log/slog"
 	"net/http"
 	"os"
@@ -13,6 +9,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	dto "github.com/prometheus/client_model/go"
 )
 
 const (
@@ -22,6 +23,7 @@ const (
 var (
 	apiName         string
 	mPort           string
+	nspace          string
 	registry        *prometheus.Registry
 	isInit          bool
 	pubOnce         = &sync.Once{}
@@ -101,7 +103,7 @@ func collect(col prometheus.Collector, do func(dto.Metric)) {
 
 // Namespace returns the Namespace for the metrics of the API.
 func Namespace() string {
-	return "mcg"
+	return nspace
 }
 
 func reset() {
@@ -120,10 +122,13 @@ func reset() {
 
 // Initialize initializes metrics system so it can TestRegisterFuncs metrics.
 // This must be called before any metrics are registered.
-func Initialize(port string) {
+func Initialize(port string, namespace string) {
 	initOnce.Do(func() {
 		if len(port) == 0 {
 			panic("port for metrics must be specified")
+		}
+		if len(namespace) == 0 {
+			panic("namespace for metrics must be specified")
 		}
 
 		p, err := strconv.Atoi(port)
@@ -132,6 +137,7 @@ func Initialize(port string) {
 		}
 
 		mPort = port
+		nspace = namespace
 
 		idx := strings.LastIndex(os.Args[0], `/`)
 		n := strings.TrimLeft(os.Args[0][idx+1:], `_`)
@@ -153,7 +159,7 @@ func newApiMetrics() {
 
 	concurentCallsName := normalize(fmt.Sprintf("%s_concurrent_calls", apiName))
 	concurrentCalls = prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Namespace: "mcg",
+		Namespace: Namespace(),
 		Name:      concurentCallsName,
 		Help:      "the count of concurrent calls to the APIs, grouped by API name, path, and response code"},
 		MetricApiLabels())
@@ -205,7 +211,6 @@ func Publish() {
 		}()
 		slog.Info("prometheus metrics api server started", "port", mPort)
 	})
-	return
 }
 
 // RegisterCustomMetrics allows one to add a custom metric to the registry. This will panic if Initialize has not
