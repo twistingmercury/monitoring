@@ -13,6 +13,9 @@ go get -u github.com/twistingmercury/monitoring
 
 ```
 
+:eyes: Zerolog is currently used for logging since there isn't yet an [OTel logging implementation for Go](https://opentelemetry.io/docs/instrumentation/go/#status-and-releases).
+
+
 ## Log Collectors and Agents
 
 This has been tested using [Vector](https://vector.dev/) and the [Datadog Agent](https://docs.datadoghq.com/agent/), with the destination being [Datadog](https://www.datadoghq.com/).

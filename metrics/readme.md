@@ -1,6 +1,9 @@
 #  Monitoring: Metrics
 
 This repository contains fn middleware for [gin and gonic](https://github.com/gin-gonic/gin) using [github.com/prometheus/client_golang]( https://pkg.go.dev/github.com/prometheus/client_golang/prometheus). 
+
+:eyes: At the time this was initially worked on, OTel metrics for Go were not stable. They are stable now, and will eventually be migrated to use [OTel Metrics](https://opentelemetry.io/docs/instrumentation/go/manual/#metrics).
+
 This middleware will add collectors (vectors) for each endpoint:
 
 | Metric                                                     | Description                          |
