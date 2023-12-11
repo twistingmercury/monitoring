@@ -27,7 +27,7 @@ func main() {
 		},
 	}
 
-	r.GET("/healthcheck", health.Handler("example", deps...))
+	r.GET("/healthcheck", health.Handler("examples", deps...))
 	if err := r.Run(); err != nil {
 		log.Fatal(err)
 	}

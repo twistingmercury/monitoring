@@ -23,9 +23,9 @@ func main() {
 	// Metrics are hosted on in a separate goroutine on the port specified.
 	// This needs to be invoked before any metrics are registered. It can be called
 	// multiple times, but only the first call will have any effect.
-	metrics.Initialize("9090", "example")
+	metrics.Initialize("9090", "examples")
 
-	// Register the metrics from any packages that have them, in this example,
+	// Register the metrics from any packages that have them, in this examples,
 	// he data package has metrics.
 	dataMetrics := data.Metrics()
 

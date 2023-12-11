@@ -49,7 +49,7 @@ func main() {
 	// Metrics are hosted on in a separate goroutine on the port specified.
 	// This needs to be invoked before any metrics are registered. It can be called
 	// multiple times, but only the first call will have any effect.
-	metrics.Initialize("9090", "example")
+	metrics.Initialize("9090", "examples")
 
 	// Publish exposes the metrics for scraping. This needs to be called after
 	// all metrics have been registered. It can be called multiple times, but
@@ -97,12 +97,12 @@ func Metrics() ([]prometheus.Collector) {
 Then register the custom metrics with the `metrics.RegisterCustomMetrics` function before you make the call to publish:
 
 ```go
-    // initialize the metrics as in the previous example...
+    // initialize the metrics as in the previous examples...
 
     cMetrics:= data.Metrics()
     metrics.RegisterCustomMetrics(cMetrics...)
 
     metrics.Publish()
 
-    // continue as in the previous example...
+    // continue as in the previous examples...
 ```

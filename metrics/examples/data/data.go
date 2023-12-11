@@ -71,6 +71,6 @@ func DoDatabaseStuff() (err error) {
 // incMetrics is a helper function to increment the metrics for the data package.
 func incMetrics(fName string, d float64, err error) {
 	isErr := err != nil
-	tCtr.WithLabelValues("example", "data", fName, strconv.FormatBool(isErr)).Inc()
-	dHist.WithLabelValues("example", "data", fName, "DoDatabaseStuff").Observe(d)
+	tCtr.WithLabelValues("examples", "data", fName, strconv.FormatBool(isErr)).Inc()
+	dHist.WithLabelValues("examples", "data", fName, "DoDatabaseStuff").Observe(d)
 }
