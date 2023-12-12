@@ -1,3 +1,5 @@
+![example workflow](https://github.com/twistingmercury/monitoring/actions/workflows/go-test.yaml/badge.svg)
+
 # Monitoring boilerplate for Go apps
 
 This package was created to help me reduce a bunch of repetitive tasks in creating a Go application. All of the apps and services need logging, distributed tracing, metrics and a healthcheck / heartbeat.
