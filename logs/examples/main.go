@@ -2,8 +2,8 @@ package main
 
 import (
 	"github.com/rs/zerolog"
-	"log"
-	"log/slog"
+	"github.com/rs/zerolog/log"
+
 	"math/rand"
 	"os"
 	"time"
@@ -34,8 +34,7 @@ func main() {
 	r.GET("/ping", pingHandler)
 
 	if err := r.Run(":8080"); err != nil {
-		slog.Error("failed to start the server", "error", err)
-		os.Exit(5) // initialize the exit code
+		log.Logger.Fatal().Err(err).Msg("failed to start server")
 	}
 }
 
@@ -43,8 +42,7 @@ var invocations = 0
 
 func pingHandler(c *gin.Context) {
 	if invocations == 1 {
-		// slog.Log(c, logs.LevelFatal, "invocations reached", "invocations", invocations)
-		log.Fatal("invocations reached: ", invocations)
+		log.Error().Msg("invocations reached")
 	}
 
 	time.Sleep(time.Duration(sleepTime(5, 100)) * time.Millisecond)
@@ -55,6 +53,6 @@ func pingHandler(c *gin.Context) {
 
 func sleepTime(min, max int) int {
 	invocations++
-	slog.Debug("sleeping", "min", min, "max", max)
+	log.Debug().Int("invocations", invocations).Msg("sleepTime")
 	return rand.Intn(max-min) + min
 }
