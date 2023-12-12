@@ -1,5 +1,4 @@
 [![Unit Tests](https://github.com/twistingmercury/monitoring/actions/workflows/go-test.yml/badge.svg?branch=develop)](https://github.com/twistingmercury/monitoring/actions/workflows/go-test.yml)
-[![Go Coverage](https://github.com/twistingmercury/monitoring/wiki/coverage.svg)](https://raw.githack.com/wiki/twistingmercury/monitoring/coverage.html)
 
 # Monitoring boilerplate for Go apps
 

@@ -3,52 +3,45 @@
 
 name: Tests
 
-# on:
-#   push:
-#   pull_request:
+on:
+  push:
+  pull_request:
 
-# jobs:
+jobs:
 
-#   build:
-#     runs-on: ubuntu-latest
-#     steps:
-#     - uses: actions/checkout@v3
-
-#     - name: Set up Go
-#       uses: actions/setup-go@v4
-#       with:
-#         go-version: '1.21'
-
-#     - name: Test
-#       run: go test -v ./...
-
-#     - name: Update coverage report
-#       uses: ncruces/go-coverage-report@v0
-#       with:
-#         report: true
-#         chart: false
-#         amend: true
-#       if: matrix.os == 'ubuntu-latest' && github.event_name == 'push'  
-#       continue-on-error: true
-
-runs-on: ubuntu-latest
-steps:
-  - uses: actions/checkout@v3
-  - uses: actions/setup-go@v3
-  
-  - name: generate test coverage
-    run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
-
-  - name: check test coverage
-    uses: vladopajic/go-test-coverage@v2
-    with:
-      # Configure action using config file (option 1)
-      config: ./.testcoverage.yml
+  build:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
       
-      # Configure action by specifying input parameters individually (option 2).
-      # If you are using config file you shouldn't use these parameters.
-      profile: cover.out
-      local-prefix: github.com/org/project
-      threshold-file: 80
-      threshold-package: 80
-      threshold-total: 95
+      - name: generate test coverage
+        run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+
+      - name: check test coverage
+        uses: vladopajic/go-test-coverage@v2
+        with:
+          # Configure action using config file (option 1)
+          config: ./.testcoverage.yml
+
+    # runs-on: ubuntu-latest
+    # steps:
+    # - uses: actions/checkout@v3
+
+    # - name: Set up Go
+    #   uses: actions/setup-go@v4
+    #   with:
+    #     go-version: '1.21'
+
+    # - name: Test
+    #   run: go test -v ./...
+
+    # - name: Update coverage report
+    #   uses: ncruces/go-coverage-report@v0
+    #   with:
+    #     report: true
+    #     chart: false
+    #     amend: true
+    #   if: matrix.os == 'ubuntu-latest' && github.event_name == 'push'  
+    #   continue-on-error: true
