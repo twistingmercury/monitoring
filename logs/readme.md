@@ -1,6 +1,6 @@
 #  Monitoring: Logging
 
-This repository contains a middleware for [gin and gonic](https://github.com/gin-gonic/gin) using [slog]( https://pkg.go.dev/log/slog).
+This repository contains a middleware for [gin and gonic](https://github.com/gin-gonic/gin) using [zerolog](https://pkg.go.dev/github.com/rs/zerolog).
 It is intended to be used by services that are instrumented with the [Open Telemetry]("go.opentelemetry.io/otel/trace") framework for Go.
 This middleware will inject the trace id and span id into the log entry so that the traces and logs can be correlated. 
 This package will also work as middleware if the project doesn't implement OTel distributed tracing.
@@ -29,18 +29,19 @@ Typically you will write to `os.Stdout`. However, if not containerizing, any [io
 ```go
 // if testing, you can use a bytes.Buffer
 buffer := &bytes.Buffer{}
-logs.Initialize(slog.LevelDebug, buildVersion, serviceName, buildDate, buildCommit, env, buffer)
+logs.Initialize(zerolog.DebugLevel, buildVersion, serviceName, buildDate, buildCommit, env, buffer)
 
 
 // if not testing, you can use os.Stdout
-logs.Initialize(slog.LevelDebug, buildVersion, serviceName, buildDate, buildCommit, env, os.Stdout)
+logs.Initialize(zerolog.DebugLevel, buildVersion, serviceName, buildDate, buildCommit, env, os.Stdout)
 ```
 
 This value is passed in with the `writer` parameter. If you do not provide a value, the application will panic. This is in keeping with the "fail fast" philosophy.
 
 ### Logging Level
 
-The logging level is set using the [zerolog.Level](https://github.com/rs/zerolog/blob/master/log.go#L129) type. This value is passed in with the `level` parameter. If a value is provide that is not valid, the application will panic. Again, this is in keeping with the "fail fast" philosophy.
+The logging level is set using the [zerolog.Level](https://github.com/rs/zerolog/blob/master/log.go#L129) type. This value is passed in with the `level` parameter. If a value is provide 
+that is not valid, the application will panic. Again, this is in keeping with the "fail fast" philosophy.
 
 ## Usage
 
@@ -52,7 +53,7 @@ package main
 import (
     "github.com/gin-contrib/requestid"
     "github.com/gin-gonic/gin"
-    "log/slog"
+	"github.com/rs/zerolog"
     "os"
 
 	"github.com/twistingmercury/monitoring/logs"
@@ -69,14 +70,11 @@ var ( // build info will be set during the build process
 )
 
 func main(){
-	//`
-	// todo: initialize tracing if you are using it...
-	// 
 	logs.Initialize(zerolog.DebugLevel, buildVersion, serviceName, buildDate, buildCommit, env, os.Stdout)
 
 	// do stuff...start your service, etc.
 	r := gin.New()
-	r.Use(logs.GinLoggingMiddleware(), gin.Recovery())
+	r.Use(logs.GinLoggingMiddleware())
 	r.GET("/api/v1/ready", func(c *gin.Context) {
 		c.JSON(200, gin.H{"ready": true})
 	})
@@ -86,7 +84,6 @@ func main(){
 	}
 }
 ```
-Once initialized, you can use `zerolog.Logger` to manually log other things, such as errors, warnings, etc. However, these will not be correlated with the request. This feature should be coming soon, so that all logs will be correlated with the trace.
 
 ### Manual Logging
 

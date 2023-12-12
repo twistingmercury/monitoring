@@ -2,19 +2,28 @@ package main
 
 import (
 	"context"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/twistingmercury/monitoring/traces"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
-	"time"
 )
 
 func main() {
+	// create a stdout exporter...
 	exporter, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
 	if err != nil {
 		panic(err)
 	}
 
-	// any trace.SpanExporter can be used here
+	////... or create a grpc exporter
+	// grpcConn, _ := grpc.Dial("localhost:4317", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	// exporter, err := otlptracegrpc.New(ctx, otlptracegrpc.WithGRPCConn(grpcConn))
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// any trace.SpanExporter can be used here.
 	shutdown, err := traces.Initialize(exporter, "0.0.1", "trace-example", time.Now().String(), "A12BC3", "localhost")
 	if err != nil {
 		panic(err)
