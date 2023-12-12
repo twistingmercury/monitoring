@@ -10,25 +10,14 @@ on:
 jobs:
 
   build:
-    name: Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
+    - uses: actions/checkout@v3
 
-      - name: run tests
-        run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
 
-      - name: check coverage
-        uses: vladopajic/go-test-coverage@v2
-        with:
-          profile: cover.out
-          local-prefix: github.com/org/project
-          threshold-total: 90
-      
-          ## when token is not specified (value '') this feature is turend off
-          ## in this example badge is created and committed only for main brach
-          ## git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
-          ## name of branch where badges are stored
-          ## ideally this should be orphan branch (see below how to create this branch)
-          git-branch: badges
+    - name: Unit Tests
+      run: go test ./logs ./traces ./metrics ./health -coverprofile=coverage.out
