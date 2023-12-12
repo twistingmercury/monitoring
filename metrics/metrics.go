@@ -2,13 +2,14 @@ package metrics
 
 import (
 	"fmt"
-	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/rs/zerolog/log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
@@ -182,7 +183,7 @@ func newApiMetrics() {
 	mNames = []string{concurentCallsName, totalCallsName, callDurationName}
 
 	registry.MustRegister(concurrentCalls, totalCalls, callDuration)
-	slog.Debug("newApiMetrics invoked")
+	log.Debug().Msg("newApiMetrics invoked")
 }
 
 // Publish exposes the metrics for scraping.
@@ -206,10 +207,10 @@ func Publish() {
 			}
 
 			if err := svr.ListenAndServe(); err != nil {
-				slog.Error("metrics endpoint failed with error", "error", err.Error())
+				log.Error().Err(err).Msg("metrics endpoint failed with error")
 			}
 		}()
-		slog.Info("prometheus metrics api server started", "port", mPort)
+		log.Info().Msg("metrics endpoint started")
 	})
 }
 

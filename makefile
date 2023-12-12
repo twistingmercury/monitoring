@@ -5,5 +5,5 @@ build:
 
 test:
 	go clean -testcache
-	go test -v ./... -coverprofile=coverage.out
+	go test ./logs ./traces ./metrics -coverprofile=coverage.out
 	go tool cover -html=coverage.out
