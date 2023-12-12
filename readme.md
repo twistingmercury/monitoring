@@ -1,4 +1,4 @@
-![example workflow](https://github.com/twistingmercury/monitoring/actions/workflows/go-test.yaml/badge.svg)
+[![Unit Tests](https://github.com/twistingmercury/monitoring/actions/workflows/go-test.yml/badge.svg?branch=develop)](https://github.com/twistingmercury/monitoring/actions/workflows/go-test.yml)
 
 # Monitoring boilerplate for Go apps
 
