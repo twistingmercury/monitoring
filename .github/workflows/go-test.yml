@@ -19,16 +19,5 @@ jobs:
       with:
         go-version: '1.21'
 
-    - name: Test
-      run: go test -v ./...
-
-    - name: Update coverage report
-      uses: ncruces/go-coverage-report@v0
-      with:
-        report: true
-        chart: true
-        amend: true
-      if: |
-        matrix.os == 'ubuntu-latest' &&
-        github.event_name == 'push'  
-      continue-on-error: true
+    - name: Unit Tests
+      run: go test ./logs ./traces ./metrics ./health -coverprofile=coverage.out

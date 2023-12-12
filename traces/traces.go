@@ -4,9 +4,9 @@ package traces
 import (
 	"context"
 	"fmt"
-	"log/slog"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	otelCodes "go.opentelemetry.io/otel/codes"
@@ -133,7 +133,7 @@ func GinTracingMiddleware() gin.HandlerFunc {
 		c.Set("trace_id", span.SpanContext().TraceID().String())
 		c.Set("span_id", span.SpanContext().SpanID().String())
 
-		slog.Debug("gin tracing middleware invoked", "path", c.Request.URL.Path, "trace_id", span.SpanContext().TraceID().String(), "span_id", span.SpanContext().SpanID().String())
+		log.Trace().Str("path", c.Request.URL.Path).Str("trace_id", span.SpanContext().TraceID().String()).Str("span_id", span.SpanContext().SpanID().String()).Msg("gin tracing middleware invoked")
 
 		c.Next()
 
@@ -159,5 +159,5 @@ func reset() {
 	tp = nil
 	tracer = nil
 	isInitialized = false
-	slog.Debug("tracer reset")
+	log.Debug().Msg("tracer reset")
 }

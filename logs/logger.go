@@ -93,12 +93,8 @@ func GinLoggingMiddleware() gin.HandlerFunc {
 			sId = noSid
 		}
 
-		// tInf := traceInfo(ctx)
-		// args = mergeMaps(args, tInf)
 		args[TraceIDAttr] = tId
 		args[SpanIDAttr] = sId
-
-		ctx.Get("span_id")
 
 		if status > 499 || ctx.Errors.Last() != nil {
 			errs := strings.Join(ctx.Errors.Errors(), ";")

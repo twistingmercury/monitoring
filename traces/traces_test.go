@@ -8,13 +8,13 @@ import (
 	"time"
 
 	"errors"
-	"log/slog"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/twistingmercury/monitoring/traces"
 	"go.opentelemetry.io/otel/attribute"
@@ -107,13 +107,10 @@ func TestGinTracingMiddleware_NotInitialized(t *testing.T) {
 }
 
 func TestGinTracingMiddleware_EndOK(t *testing.T) {
-	opt := &slog.HandlerOptions{
-		AddSource: false,
-		Level:     slog.LevelDebug,
-	}
+
 	buf := &bytes.Buffer{}
-	log := slog.New(slog.NewJSONHandler(buf, opt))
-	slog.SetDefault(log)
+	zerolog.SetGlobalLevel(zerolog.TraceLevel)
+	zerolog.TimeFieldFormat = time.RFC3339Nano
 
 	svr := mockOtelSvr(t)
 	svr.Start()
@@ -155,13 +152,7 @@ func TestGinTracingMiddleware_EndOK(t *testing.T) {
 }
 
 func TestGinTracingMiddleware_EndError(t *testing.T) {
-	opt := &slog.HandlerOptions{
-		AddSource: false,
-		Level:     slog.LevelDebug,
-	}
 	buf := &bytes.Buffer{}
-	log := slog.New(slog.NewJSONHandler(buf, opt))
-	slog.SetDefault(log)
 
 	svr := mockOtelSvr(t)
 	svr.Start()
