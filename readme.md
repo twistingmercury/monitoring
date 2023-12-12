@@ -1,4 +1,4 @@
-![Test Status](https://github.com/twistingmercury/monitoring/workflows/go-test.yaml/badge.svg?branch=develop)
+[![Go](https://github.com/twistingmercury/monitoring/actions/workflows/go-test.yml/badge.svg?branch=develop)](https://github.com/twistingmercury/monitoring/actions/workflows/go-test.yml)
 
 # Monitoring boilerplate for Go apps
 
