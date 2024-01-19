@@ -53,10 +53,10 @@ package main
 import (
     "github.com/gin-contrib/requestid"
     "github.com/gin-gonic/gin"
-	"github.com/rs/zerolog"
+    "github.com/rs/zerolog"
     "os"
 
-	"github.com/twistingmercury/monitoring/logs"
+    "github.com/twistingmercury/monitoring/logs"
     ...
 )
 
