@@ -3,7 +3,9 @@
 This repository contains a middleware for [gin and gonic](https://github.com/gin-gonic/gin) using [zerolog](https://pkg.go.dev/github.com/rs/zerolog).
 It is intended to be used by services that are instrumented with the [Open Telemetry]("go.opentelemetry.io/otel/trace") framework for Go.
 This middleware will inject the trace id and span id into the log entry so that the traces and logs can be correlated. 
-This package will also work as middleware if the project doesn't implement OTel distributed tracing.
+
+This package will also work as middleware if the project doesn't implement OTel distributed tracing. Neither is gin and gonic
+required; you can initialize the logging package and use the helper functions to log manually.
 
 ## Installation
 
@@ -129,4 +131,14 @@ func myApi (c *gin.Context){
     // do more stuff...
     c.JSON(200, gin.H{"success": true})
 }
+```
+## Access the Logger
+
+You can get a pointer to the logger by calling `logs.Logger()`. This is useful if you want to log something outside of the middleware or helper functions.
+
+```go
+
+zlogger := logs.Logger()
+zlogger.Info().Msg("this is a log entry")
+
 ```

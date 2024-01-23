@@ -79,7 +79,7 @@ func Initialize(exporter sdktrace.SpanExporter, ver, apiName, buildDate, commitH
 	return
 }
 
-// NewSpan starts a new span with using the supplied context.
+// NewSpan starts a new span that is a child of the existing span within the supplied context.
 // in: ctx: The context. If nil, an error is returned.
 // in: spanName: The name of the span.
 // in: kind: The arg kind is used to set the span kind. The constant trace.SpanKind is defined here: https://pkg.go.dev/go.opentelemetry.io/otel/trace@v1.15.
