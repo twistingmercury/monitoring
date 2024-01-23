@@ -27,11 +27,11 @@ var (
 
 type noopExporter struct{}
 
-func (n noopExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
+func (n noopExporter) ExportSpans(_ context.Context, _ []sdktrace.ReadOnlySpan) error {
 	return nil
 }
 
-func (n noopExporter) Shutdown(ctx context.Context) error {
+func (n noopExporter) Shutdown(_ context.Context) error {
 	return nil
 }
 
@@ -88,6 +88,10 @@ func Initialize(exporter sdktrace.SpanExporter, ver, apiName, buildDate, commitH
 // out: span: The span.
 // out: err: The error if the context is nil.
 func NewSpan(traceCtx context.Context, spanName string, kind trace.SpanKind, attributes ...attribute.KeyValue) (spanCtx context.Context, span trace.Span, err error) {
+	if !isInitialized {
+		panic("traces.Initialize() must be invoked before invoking NewSpan()")
+	}
+
 	if traceCtx == nil {
 		err = fmt.Errorf("context is nil")
 		return
