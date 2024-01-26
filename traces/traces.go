@@ -27,11 +27,11 @@ var (
 
 type noopExporter struct{}
 
-func (n noopExporter) ExportSpans(ctx context.Context, spans []sdktrace.ReadOnlySpan) error {
+func (n noopExporter) ExportSpans(_ context.Context, _ []sdktrace.ReadOnlySpan) error {
 	return nil
 }
 
-func (n noopExporter) Shutdown(ctx context.Context) error {
+func (n noopExporter) Shutdown(_ context.Context) error {
 	return nil
 }
 
@@ -79,7 +79,7 @@ func Initialize(exporter sdktrace.SpanExporter, ver, apiName, buildDate, commitH
 	return
 }
 
-// NewSpan starts a new span with using the supplied context.
+// NewSpan starts a new span that is a child of the existing span within the supplied context.
 // in: ctx: The context. If nil, an error is returned.
 // in: spanName: The name of the span.
 // in: kind: The arg kind is used to set the span kind. The constant trace.SpanKind is defined here: https://pkg.go.dev/go.opentelemetry.io/otel/trace@v1.15.
@@ -88,6 +88,10 @@ func Initialize(exporter sdktrace.SpanExporter, ver, apiName, buildDate, commitH
 // out: span: The span.
 // out: err: The error if the context is nil.
 func NewSpan(traceCtx context.Context, spanName string, kind trace.SpanKind, attributes ...attribute.KeyValue) (spanCtx context.Context, span trace.Span, err error) {
+	if !isInitialized {
+		panic("traces.Initialize() must be invoked before invoking NewSpan()")
+	}
+
 	if traceCtx == nil {
 		err = fmt.Errorf("context is nil")
 		return

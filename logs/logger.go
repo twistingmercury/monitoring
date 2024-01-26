@@ -17,24 +17,26 @@ import (
 )
 
 const (
-	ServiceNameAttr    = "dd.service"
-	ServiceVersionAttr = "dd.version"
-	ServiceEnvAttr     = "dd.env"
-	TraceIDAttr        = "dd.trace_id"
-	SpanIDAttr         = "dd.span_id"
-	LogSourceAttr      = "ddsource"
-	BuildDate          = "build_date"
-	Commit             = "commit"
-	Host               = "host"
-	HttpMethod         = "http.request.method"
-	HttpPath           = "http.request.path"
-	HttpRemoteAddr     = "http.request.remoteAddr"
-	HttpStatus         = "http.response.status"
-	HttpLatency        = "http.response.latency"
-	LogLevel           = "level"
+	TraceIDAttr    = "dd.trace_id"
+	SpanIDAttr     = "dd.span_id"
+	HttpMethod     = "http.request.method"
+	HttpPath       = "http.request.path"
+	HttpRemoteAddr = "http.request.remoteAddr"
+	HttpStatus     = "http.response.status"
+	HttpLatency    = "http.response.latency"
+	LogLevel       = "level"
 )
 
-var logger zerolog.Logger
+var (
+	logger        zerolog.Logger
+	isInitialized bool
+)
+
+// Logger returns a pointer to the logger that is
+// used by the logging system.
+func Logger() *zerolog.Logger {
+	return &logger
+}
 
 // Initialize initializes the logging system.
 // It returns a logger that can be used to log messages, though it is not required.
@@ -47,11 +49,25 @@ func Initialize(level zerolog.Level, ver, apiName, buildDate, commitHash, env st
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 
-	logger = zerolog.New(writer).With().Timestamp().Logger()
+	logger = zerolog.New(writer).
+		With().
+		Timestamp().
+		Str("service", apiName).
+		Str("version", ver).
+		Str("buildDate", buildDate).
+		Str("commitHash", commitHash).
+		Str("env", env).
+		Logger()
+
+	isInitialized = true
 }
 
 // GinLoggingMiddleware logs the incoming request and starts the trace.
 func GinLoggingMiddleware() gin.HandlerFunc {
+	if !isInitialized {
+		panic("logs.Initialize() must be invoked before using the logging middleware")
+	}
+
 	return func(ctx *gin.Context) {
 		s := time.Now()
 		ctx.Next()
@@ -120,22 +136,6 @@ func mergeMaps(m1 map[string]any, m2 map[string]any) map[string]any {
 		merged[key] = value
 	}
 	return merged
-}
-
-// traceInfo returns the trace id and span id found in the ctx.
-func traceInfo(ctx context.Context) (tMap map[string]any) {
-	tMap = make(map[string]any, 2)
-	span := trace.SpanFromContext(ctx)
-	spanCtx := span.SpanContext()
-	if !spanCtx.TraceID().IsValid() {
-		tMap[TraceIDAttr] = noTid
-		tMap[SpanIDAttr] = noSid
-		return
-	}
-
-	tMap[TraceIDAttr] = spanCtx.TraceID().String()
-	tMap[SpanIDAttr] = spanCtx.SpanID().String()
-	return
 }
 
 // ParseHeaders parses the headers and returns a map of attributes.
@@ -260,4 +260,24 @@ func Fatal(ctx context.Context, err error, message string, args map[string]any) 
 		Fields(args).
 		Err(err).
 		Msg(message)
+}
+
+// traceInfo returns the trace id and span id found in the ctx.
+func traceInfo(ctx context.Context) (tMap map[string]any) {
+	if !isInitialized {
+		panic("log.Initialize() must be invoked before using the logging system")
+	}
+
+	tMap = make(map[string]any, 2)
+	span := trace.SpanFromContext(ctx)
+	spanCtx := span.SpanContext()
+	if !spanCtx.TraceID().IsValid() {
+		tMap[TraceIDAttr] = noTid
+		tMap[SpanIDAttr] = noSid
+		return
+	}
+
+	tMap[TraceIDAttr] = spanCtx.TraceID().String()
+	tMap[SpanIDAttr] = spanCtx.SpanID().String()
+	return
 }

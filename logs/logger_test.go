@@ -332,3 +332,17 @@ func testOsExit(t *testing.T, funcName string, testFunc func(*testing.T)) {
 	}
 	t.Fatal("subprocess ran successfully, want non-zero exit status")
 }
+
+func TestLogger(t *testing.T) {
+	tout := &bytes.Buffer{}
+	logs.Initialize(zerolog.DebugLevel, "0.0.1", "logs_test", "now", "456789", "local", tout)
+	logger := logs.Logger()
+	assert.NotNil(t, logger)
+	logger.Info().Msg("test")
+	le := make(map[string]any)
+	err := json.Unmarshal(tout.Bytes(), &le)
+	if err != nil {
+		t.Fatalf("failed to unmarshal log entry: %v", err)
+	}
+	assert.Equal(t, zerolog.InfoLevel.String(), le[logs.LogLevel])
+}
