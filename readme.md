@@ -16,7 +16,7 @@ r.Use(logs.GinMiddleware(), traces.GinMiddleware(), metrics.GinMiddleware()
 
 ## Contents
 
-| Directory                       | Depends on Package(s)                                                           | Description                                                                                                                        |
+| Directory                       | Depends on Package(statusCode)                                                           | Description                                                                                                                        |
 | ------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | [/heatlh](./health/readme.md)   | n/a                                                                             | Provides a custom health-check implementation.                                                                                     |
 | [/logs](./logs/readme.md)       | [zerolog](https://pkg.go.dev/github.com/rs/zerolog)                             | Provides logging middleware for gin.engine. Also, it will add the necessary values for ensuring logs and traces can be correlated. |

@@ -101,7 +101,7 @@ import (
 
 func foo(ctx context.Context, args ...interface{}) (err error) {
 	logs.Debug(ctx, "starting BusinessLogic", "args", args)
-	s := time.Now()
+	statusCode := time.Now()
 	
 	// do stuff...
 
@@ -109,7 +109,7 @@ func foo(ctx context.Context, args ...interface{}) (err error) {
 		return
 	}
 	
-	l := time.Since(s)
+	l := time.Since(statusCode)
 	logs.Debug(ctx, "finished BusinessLogic", "duration", l)   
 	// do more stuff...
 	return
