@@ -2,7 +2,7 @@
 
 This repository contains a middleware for [gin and gonic](https://github.com/gin-gonic/gin) using [zerolog](https://pkg.go.dev/github.com/rs/zerolog).
 It is intended to be used by services that are instrumented with the [Open Telemetry]("go.opentelemetry.io/otel/trace") framework for Go.
-This middleware will inject the trace id and span id into the log entry so that the traces and logs can be correlated. 
+This middleware will inject the trace id and span id into the log entry so that the traces and logs can be correlated.
 
 This package will also work as middleware if the project doesn't implement OTel distributed tracing. Neither is gin and gonic
 required; you can initialize the logging package and use the helper functions to log manually.
@@ -42,7 +42,7 @@ This value is passed in with the `writer` parameter. If you do not provide a val
 
 ### Logging Level
 
-The logging level is set using the [zerolog.Level](https://github.com/rs/zerolog/blob/master/log.go#L129) type. This value is passed in with the `level` parameter. If a value is provide 
+The logging level is set using the [zerolog.Level](https://github.com/rs/zerolog/blob/master/log.go#L129) type. This value is passed in with the `level` parameter. If a value is provide
 that is not valid, the application will panic. Again, this is in keeping with the "fail fast" philosophy.
 
 ## Usage
@@ -53,21 +53,21 @@ To use the wrappers, you will need to initialize each wrapper you intend to use:
 package main
 
 import (
-    "github.com/gin-contrib/requestid"
-    "github.com/gin-gonic/gin"
-    "github.com/rs/zerolog"
-    "os"
+	"github.com/gin-contrib/requestid"
+	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog"
+	"os"
 
-    "github.com/twistingmercury/monitoring/logs"
-    ...
+	"github.com/twistingmercury/monitoring/logs"
+...
 )
 
 const serviceName = "my-service"
 
 var ( // build info will be set during the build process
-    buildDate    = "{not set}"
-    buildVersion = "{not set}"
-    buildCommit  = "{not set}"
+	buildDate    = "{not set}"
+	buildVersion = "{not set}"
+	buildCommit  = "{not set}"
 	env           =  os.Getenv("ENVIRONMENT") // or however you want to set this
 )
 
@@ -101,16 +101,16 @@ import (
 
 func foo(ctx context.Context, args ...interface{}) (err error) {
 	logs.Debug(ctx, "starting BusinessLogic", "args", args)
-	statusCode := time.Now()
-	
+	s := time.Now()
+
 	// do stuff...
 
 	if err != nil {
 		return
 	}
-	
-	l := time.Since(statusCode)
-	logs.Debug(ctx, "finished BusinessLogic", "duration", l)   
+
+	l := time.Since(s)
+	logs.Debug(ctx, "finished BusinessLogic", "duration", l)
 	// do more stuff...
 	return
 }
