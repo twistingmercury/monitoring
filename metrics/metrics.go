@@ -44,13 +44,6 @@ func Port() string {
 	return mPort
 }
 
-// MetricInfo is a struct that contains the name, path, and method of the API.
-type MetricInfo struct {
-	Name   string
-	Path   string
-	Method string
-}
-
 // ConcurrentCalls returns the number of concurrent calls to the API.
 func ConcurrentCalls() prometheus.Collector {
 	return concurrentCalls
@@ -163,7 +156,7 @@ func newApiMetrics() {
 		Namespace: Namespace(),
 		Name:      concurentCallsName,
 		Help:      "the count of concurrent calls to the APIs, grouped by API name, path, and response code"},
-		MetricApiLabels())
+		[]string{"path", "http_method"})
 
 	totalCallsName := normalize(fmt.Sprintf("%s_total_calls", apiName))
 	totalCalls = prometheus.NewCounterVec(prometheus.CounterOpts{
@@ -230,23 +223,23 @@ func GinMetricsMiddleWare() gin.HandlerFunc {
 		panic(initErrMsg)
 	}
 	return func(c *gin.Context) {
-		p := c.Request.URL.Path
-		m := c.Request.Method
-		var s string
-		var d float64
+		path := c.Request.URL.Path
+		method := c.Request.Method
+		var statusCode string
+		var duration float64
 
-		concurrentCalls.WithLabelValues(p, m, "n/a").Inc()
+		concurrentCalls.WithLabelValues(path, method).Inc()
 
 		defer func() {
-			concurrentCalls.WithLabelValues(p, m, "n/a").Dec()
-			callDuration.WithLabelValues(p, m, s).Observe(d)
-			totalCalls.WithLabelValues(p, m, s).Inc()
+			concurrentCalls.WithLabelValues(path, method).Dec()
+			callDuration.WithLabelValues(path, method, statusCode).Observe(duration)
+			totalCalls.WithLabelValues(path, method, statusCode).Inc()
 		}()
 
 		start := time.Now()
 		c.Next()
-		d = float64(time.Since(start).Milliseconds())
-		s = strconv.Itoa(c.Writer.Status())
+		duration = float64(time.Since(start).Milliseconds())
+		statusCode = strconv.Itoa(c.Writer.Status())
 	}
 }
 
