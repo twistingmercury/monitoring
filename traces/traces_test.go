@@ -83,10 +83,6 @@ func TestSpanStart(t *testing.T) {
 	assert.Panics(t, func() {
 		traces.Reset()
 		defer traces.Reset()
-
-		tm := traces.GinTracingMiddleware()
-		assert.NotNil(t, tm)
-
 		traces.Start(context.Background(), "test_span", trace.SpanKindUnspecified)
 	})
 
