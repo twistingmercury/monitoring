@@ -114,7 +114,8 @@ func TestSpanStart(t *testing.T) {
 	assert.NoError(t, err)
 	traces.EndError(span, errors.New("test error"))
 
-	_, _, err = traces.Start(nil, "test_span", trace.SpanKindUnspecified)
+	var spanCtx context.Context = nil
+	_, _, err = traces.Start(spanCtx, "test_span", trace.SpanKindUnspecified)
 	assert.Error(t, err)
 }
 
