@@ -18,6 +18,10 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
+const (
+	notInitializedError = "traces.Initialize() has not been invoked"
+)
+
 var (
 	isInitialized bool
 	tp            *sdktrace.TracerProvider
@@ -79,6 +83,53 @@ func Initialize(exporter sdktrace.SpanExporter, ver, apiName, buildDate, commitH
 	return
 }
 
+// Start starts a new span that has no parent. This is merely a convenience function that wraps the Start function of the tracer.
+// in: ctx: The context. If nil, an error is returned.
+// in: spanName: The name of the span.
+// in: kind: The arg kind is used to set the span kind. The constant trace.SpanKind is defined here: https://pkg.go.dev/go.opentelemetry.io/otel/trace@v1.15.
+// in: attributes: The attributes to add to the span.
+// out: ctx: The context with the span added.
+// out: span: The span.
+// out: err: The error if the context is nil.
+func Start(ctx context.Context, spanName string, kind trace.SpanKind, attributes ...attribute.KeyValue) (spanCtx context.Context, span trace.Span, err error) {
+	if !isInitialized {
+		panic(notInitializedError)
+	}
+
+	if ctx == nil {
+		err = fmt.Errorf("context is nil")
+		return
+	}
+
+	if len(attributes) > 0 {
+		commonAttrs = append(commonAttrs, attributes...)
+	}
+
+	spanCtx, span = tracer.Start(
+		ctx,
+		spanName,
+		trace.WithSpanKind(kind),
+		trace.WithAttributes(commonAttrs...))
+	return
+}
+
+// End ends the span with the supplied status and error. This is merely a convenience function that wraps the the trace.Span SetStatus and End functions of the span.
+// in: span: The span.
+// in: status: The status code. 0 is "unset", 1 is "error", and 2 is "ok".
+// in: err: The error. Can be nil. If the status is "error", the error the error is used as the description for the status.
+func End(span trace.Span, status otelCodes.Code, err error) {
+	if !isInitialized {
+		panic(notInitializedError)
+	}
+	
+	msg := ""
+	if err != nil {
+		msg = fmt.Sprintf("%v", err)
+	}
+	span.SetStatus(status, msg)
+	span.End()
+}
+
 // NewSpan starts a new span that is a child of the existing span within the supplied context.
 // in: ctx: The context. If nil, an error is returned.
 // in: spanName: The name of the span.
@@ -87,9 +138,11 @@ func Initialize(exporter sdktrace.SpanExporter, ver, apiName, buildDate, commitH
 // out: ctx: The context with the span added.
 // out: span: The span.
 // out: err: The error if the context is nil.
+//
+// Deprecated: Use traces.Start(context.Context, string, trace.SpanKind, ...attribute.KeyValue) instead. This function will be removed in v2.0.0.
 func NewSpan(traceCtx context.Context, spanName string, kind trace.SpanKind, attributes ...attribute.KeyValue) (spanCtx context.Context, span trace.Span, err error) {
 	if !isInitialized {
-		panic("traces.Initialize() must be invoked before invoking NewSpan()")
+		panic(notInitializedError)
 	}
 
 	if traceCtx == nil {
@@ -110,13 +163,23 @@ func NewSpan(traceCtx context.Context, spanName string, kind trace.SpanKind, att
 }
 
 // EndOK ends the span with a status of "ok".
+//
+// Deprecated: use traces.End(trace.Span, otel.Codes, string) instead. This function will be removed in v2.0.0.
 func EndOK(span trace.Span) {
+	if !isInitialized {
+		panic(notInitializedError)
+	}
 	span.SetStatus(otelCodes.Ok, "ok")
 	span.End()
 }
 
 // EndError ends the span with a status of "error".
+//
+// Deprecated: use traces.End(trace.Span, otel.Codes, string) instead. This function will be removed in v2.0.0.
 func EndError(span trace.Span, err error) {
+	if !isInitialized {
+		panic(notInitializedError)
+	}
 	span.RecordError(err)
 	span.SetStatus(otelCodes.Error, "error")
 	span.End()
@@ -124,7 +187,7 @@ func EndError(span trace.Span, err error) {
 
 func GinTracingMiddleware() gin.HandlerFunc {
 	if !isInitialized {
-		panic("traces.Initialize() must be invoked before using the tracing middleware")
+		panic(notInitializedError)
 	}
 
 	return func(c *gin.Context) {
@@ -137,21 +200,23 @@ func GinTracingMiddleware() gin.HandlerFunc {
 		c.Set("trace_id", span.SpanContext().TraceID().String())
 		c.Set("span_id", span.SpanContext().SpanID().String())
 
-		log.Trace().Str("path", c.Request.URL.Path).Str("trace_id", span.SpanContext().TraceID().String()).Str("span_id", span.SpanContext().SpanID().String()).Msg("gin tracing middleware invoked")
+		log.Info().Str("path", c.Request.URL.Path).Str("trace_id", span.SpanContext().TraceID().String()).Str("span_id", span.SpanContext().SpanID().String()).Msg("gin tracing middleware invoked")
 
 		c.Next()
 
 		status := c.Writer.Status()
 
-		if status >= 500 {
-			if len(c.Errors) > 0 {
-				span.RecordError(c.Errors.Last())
-			}
-			span.SetStatus(otelCodes.Error, "error")
-			span.End()
-			return
+		var code otelCodes.Code
+		switch {
+		case status >= 200 && status < 300:
+			code = otelCodes.Ok
+		case status >= 300 && status < 400:
+			code = otelCodes.Unset
+		case status >= 500:
+			code = otelCodes.Error
 		}
-		EndOK(span)
+
+		End(span, code, nil)
 	}
 }
 

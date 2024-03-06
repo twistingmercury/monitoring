@@ -18,6 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/twistingmercury/monitoring/traces"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -71,6 +72,107 @@ func TestSpanCreation(t *testing.T) {
 
 	_, _, err = traces.NewSpan(nil, "test_span", trace.SpanKindUnspecified)
 	assert.Error(t, err)
+}
+
+func TestSpanStart(t *testing.T) {
+	exp, err := stdouttrace.New(stdouttrace.WithPrettyPrint())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.Panics(t, func() {
+		traces.Reset()
+		defer traces.Reset()
+		traces.Start(context.Background(), "test_span", trace.SpanKindUnspecified)
+	})
+
+	shutdown, err := traces.Initialize(exp, "test_service", "test_version", "2023-01-01", "123456", "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.NoError(t, err)
+	assert.NotNil(t, shutdown)
+	defer func() {
+		traces.Reset()
+		_ = shutdown(context.Background())
+	}()
+
+	attribs := []attribute.KeyValue{
+		attribute.String("test", "test"),
+		attribute.Int("test_int", 1),
+	}
+
+	ctx := context.Background()
+
+	cCtx, span, err := traces.Start(ctx, "test_span", trace.SpanKindUnspecified, attribs...)
+	assert.NotNil(t, cCtx)
+	assert.NoError(t, err)
+	assert.NotNil(t, span)
+	traces.EndOK(span)
+
+	_, span, err = traces.Start(context.TODO(), "test_span", trace.SpanKindUnspecified)
+	assert.NoError(t, err)
+	traces.EndError(span, errors.New("test error"))
+
+	var spanCtx context.Context = nil
+	_, _, err = traces.Start(spanCtx, "test_span", trace.SpanKindUnspecified)
+	assert.Error(t, err)
+}
+
+func TestSpanEnd(t *testing.T) {
+
+	assert.Panics(t, func() {
+		traces.Reset()
+		defer traces.Reset()
+		traces.End(trace.SpanFromContext(context.Background()), codes.Ok, nil)
+	})
+
+	buf := &bytes.Buffer{}
+	zerolog.SetGlobalLevel(zerolog.TraceLevel)
+	zerolog.TimeFieldFormat = time.RFC3339Nano
+
+	svr := mockOtelSvr(t)
+	svr.Start()
+	defer svr.Close()
+
+	shutdown, err := traces.Initialize(traces.NewNoopExporter(), "test_service", "test_version", "2023-01-01", "123456", "test")
+	assert.NoError(t, err)
+	assert.NotNil(t, shutdown)
+	defer func() {
+		traces.Reset()
+		buf.Reset()
+		_ = shutdown(context.Background())
+	}()
+
+	w := httptest.NewRecorder()
+	gin.SetMode(gin.TestMode)
+	c, r := gin.CreateTestContext(w)
+	r.GET("/", func(c *gin.Context) {
+		c.Writer.WriteHeader(http.StatusOK)
+	})
+	c.Request, _ = http.NewRequest("GET", "/test", nil)
+	r.Use(traces.GinTracingMiddleware())
+	r.ServeHTTP(w, c.Request)
+
+	re := buf.String()
+	lines := strings.Split(re, "\n")
+
+	entries := unmarshalLogEntries(lines)
+
+	for _, entry := range entries {
+		if len(entry.TraceID) == 0 {
+			continue
+		}
+		assert.Equal(t, "gin tracing middleware invoked", entry.Msg)
+		assert.NotEqual(t, noSid, entry.SpanID)
+		assert.NotEmpty(t, noTid, entry.TraceID)
+	}
+
+	_, span, err := traces.Start(context.Background(), "test_span", trace.SpanKindUnspecified)
+	assert.NoError(t, err)
+
+	err = errors.New("test error")
+	traces.End(span, codes.Error, err)
 }
 
 func TestTraceInitialize(t *testing.T) {

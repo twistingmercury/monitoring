@@ -1,20 +1,20 @@
 package handlers
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/twistingmercury/monitoring/metrics"
-	"github.com/twistingmercury/monitoring/metrics/examples/data"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
+	"github.com/twistingmercury/monitoring/metrics/examples/data"
 )
 
-func MetricsInfo() []metrics.MetricInfo {
-	return []metrics.MetricInfo{
-		{Name: "getPerson", Path: "/person", Method: "GET"},
-		{Name: "addPerson", Path: "/person", Method: "POST"},
-		{Name: "updatePerson", Path: "/person/id", Method: "PUT"},
-		{Name: "deletePerson", Path: "/person/id", Method: "DELETE"},
-	}
-}
+// func MetricsInfo() []metrics.MetricInfo {
+// 	return []metrics.MetricInfo{
+// 		{Name: "getPerson", Path: "/person", Method: "GET"},
+// 		{Name: "addPerson", Path: "/person", Method: "POST"},
+// 		{Name: "updatePerson", Path: "/person/id", Method: "PUT"},
+// 		{Name: "deletePerson", Path: "/person/id", Method: "DELETE"},
+// 	}
+// }
 
 func GetPersonHandler(c *gin.Context) {
 	err := data.DoDatabaseStuff()
